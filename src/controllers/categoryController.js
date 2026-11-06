@@ -106,9 +106,15 @@ export const deleteCategory = (models) => async (req, res) => {
       return res.status(404).json({ success: false, message: 'Category not found.' });
     }
 
+    // Safely unbind products from this category first to prevent foreign key errors
+    if (models.Product) {
+      await models.Product.update({ category_id: null }, { where: { category_id: id } });
+    }
+
     await category.destroy();
     return res.json({ success: true, message: 'Category deleted successfully.' });
   } catch (error) {
+    console.error('Delete category error:', error);
     return res.status(500).json({ success: false, message: 'Failed to delete category.', error: error.message });
   }
 };

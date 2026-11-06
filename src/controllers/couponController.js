@@ -45,10 +45,14 @@ export const applyCoupon = (models) => async (req, res) => {
     return res.json({
       success: true,
       message: `Coupon "${coupon.code}" applied! You saved ₹${discount.toLocaleString('en-IN')}`,
+      discount_amount: discount,
+      discount: discount,
       coupon: {
+        id: coupon.id,
         code: coupon.code,
         type: coupon.type,
         value: coupon.value,
+        discount_amount: discount,
         discount
       }
     });

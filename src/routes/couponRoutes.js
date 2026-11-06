@@ -12,6 +12,8 @@ export const createCouponRouter = (models) => {
   const router = express.Router();
 
   router.post('/apply', applyCoupon(models));
+  router.post('/validate', applyCoupon(models));
+  router.get('/admin', authenticateToken, requireAdmin, adminGetCoupons(models));
   router.get('/admin/all', authenticateToken, requireAdmin, adminGetCoupons(models));
   router.post('/admin', authenticateToken, requireAdmin, createCoupon(models));
   router.delete('/admin/:id', authenticateToken, requireAdmin, deleteCoupon(models));

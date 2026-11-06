@@ -267,6 +267,10 @@ export const toggleCustomerStatus = (models) => async (req, res) => {
   }
 };
 
+import { updateCloudinaryConfig, testCloudinaryConnection } from '../config/cloudinary.js';
+import fs from 'fs';
+import path from 'path';
+
 export const getStoreSettings = (models) => async (req, res) => {
   try {
     const settings = await models.StoreSetting.findAll();
@@ -274,6 +278,17 @@ export const getStoreSettings = (models) => async (req, res) => {
     settings.forEach((s) => {
       settingsMap[s.key] = s.value;
     });
+
+    // Provide default Cloudinary keys from .env if not yet saved in settings
+    if (!settingsMap.cloudinary_cloud_name) {
+      settingsMap.cloudinary_cloud_name = process.env.CLOUDINARY_CLOUD_NAME || '';
+    }
+    if (!settingsMap.cloudinary_api_key) {
+      settingsMap.cloudinary_api_key = process.env.CLOUDINARY_API_KEY || '';
+    }
+    if (!settingsMap.cloudinary_api_secret) {
+      settingsMap.cloudinary_api_secret = process.env.CLOUDINARY_API_SECRET || '';
+    }
 
     return res.json({ success: true, settings: settingsMap });
   } catch (error) {
@@ -292,6 +307,41 @@ export const updateStoreSettings = (models) => async (req, res) => {
         await existing.save();
       } else {
         await models.StoreSetting.create({ key, value });
+      }
+    }
+
+    // If Cloudinary keys are supplied, update live runtime config
+    if (
+      settingsObj.cloudinary_cloud_name !== undefined ||
+      settingsObj.cloudinary_api_key !== undefined ||
+      settingsObj.cloudinary_api_secret !== undefined
+    ) {
+      updateCloudinaryConfig({
+        cloud_name: settingsObj.cloudinary_cloud_name,
+        api_key: settingsObj.cloudinary_api_key,
+        api_secret: settingsObj.cloudinary_api_secret
+      });
+
+      // Update backend/.env file so changes persist across server restarts
+      try {
+        const envPath = path.resolve(process.cwd(), 'backend/.env');
+        const altEnvPath = path.resolve(process.cwd(), '.env');
+        const targetEnv = fs.existsSync(envPath) ? envPath : (fs.existsSync(altEnvPath) ? altEnvPath : null);
+        if (targetEnv) {
+          let envContent = fs.readFileSync(targetEnv, 'utf8');
+          if (settingsObj.cloudinary_cloud_name) {
+            envContent = envContent.replace(/CLOUDINARY_CLOUD_NAME=.*/g, `CLOUDINARY_CLOUD_NAME=${settingsObj.cloudinary_cloud_name}`);
+          }
+          if (settingsObj.cloudinary_api_key) {
+            envContent = envContent.replace(/CLOUDINARY_API_KEY=.*/g, `CLOUDINARY_API_KEY=${settingsObj.cloudinary_api_key}`);
+          }
+          if (settingsObj.cloudinary_api_secret) {
+            envContent = envContent.replace(/CLOUDINARY_API_SECRET=.*/g, `CLOUDINARY_API_SECRET=${settingsObj.cloudinary_api_secret}`);
+          }
+          fs.writeFileSync(targetEnv, envContent, 'utf8');
+        }
+      } catch (envErr) {
+        console.warn('Notice updating .env file:', envErr.message);
       }
     }
 

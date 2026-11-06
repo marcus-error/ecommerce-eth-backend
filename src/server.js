@@ -44,6 +44,14 @@ export async function autoMigrateSchema(sequelize) {
         }
 
         try {
+          const [imgCols] = await sequelize.query("SHOW COLUMNS FROM `product_images`");
+          const imgColNames = new Set(imgCols.map((c) => c.Field));
+          if (!imgColNames.has('public_id')) {
+            await sequelize.query('ALTER TABLE `product_images` ADD COLUMN `public_id` VARCHAR(255) NULL');
+          }
+        } catch (imgErr) {}
+
+        try {
           const [revCols] = await sequelize.query("SHOW COLUMNS FROM `reviews`");
           const revColNames = new Set(revCols.map((c) => c.Field));
           if (!revColNames.has('location')) {

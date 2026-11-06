@@ -307,13 +307,18 @@ export const createProduct = (models) => async (req, res) => {
     // Save Images safely
     try {
       const validImages = (Array.isArray(images) ? images : [images])
-        .map((img) => (typeof img === 'string' ? img.trim() : img?.image_url))
-        .filter(Boolean);
+        .map((img) => {
+          if (typeof img === 'string') return { image_url: img.trim(), public_id: null };
+          if (img && typeof img === 'object') return { image_url: (img.image_url || img.url || '').trim(), public_id: img.public_id || null };
+          return null;
+        })
+        .filter((item) => item && item.image_url);
 
       if (validImages.length > 0) {
-        const imgRecords = validImages.map((imgUrl, idx) => ({
+        const imgRecords = validImages.map((item, idx) => ({
           product_id: product.id,
-          image_url: imgUrl,
+          image_url: item.image_url,
+          public_id: item.public_id,
           is_primary: idx === 0,
           display_order: idx
         }));
@@ -452,11 +457,14 @@ export const updateProduct = (models) => async (req, res) => {
       await models.ProductImage.destroy({ where: { product_id: product.id } });
       const imgRecords = images.map((img, idx) => ({
         product_id: product.id,
-        image_url: typeof img === 'string' ? img : img.image_url,
+        image_url: typeof img === 'string' ? img : (img.image_url || img.url),
+        public_id: typeof img === 'object' ? (img.public_id || null) : null,
         is_primary: idx === 0,
         display_order: idx
-      }));
-      await models.ProductImage.bulkCreate(imgRecords);
+      })).filter((r) => r.image_url);
+      if (imgRecords.length > 0) {
+        await models.ProductImage.bulkCreate(imgRecords);
+      }
     }
 
     // If variants array provided, replace
@@ -486,18 +494,56 @@ export const updateProduct = (models) => async (req, res) => {
   }
 };
 
+import { deleteFromCloudinary } from '../config/cloudinary.js';
+
 export const deleteProduct = (models) => async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await models.Product.findByPk(id);
+    const product = await models.Product.findByPk(id, {
+      include: [
+        { model: models.ProductImage, as: 'images' }
+      ]
+    });
 
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found.' });
     }
 
+    // Clean up images from Cloudinary if stored there
+    if (product.images && product.images.length > 0) {
+      for (const img of product.images) {
+        if (img.public_id) {
+          try {
+            await deleteFromCloudinary(img.public_id);
+          } catch (e) {
+            console.warn('Cloudinary cleanup warning:', e.message);
+          }
+        }
+      }
+    }
+
+    // Cascade delete child table records to avoid foreign key constraints
+    if (models.ProductImage) {
+      await models.ProductImage.destroy({ where: { product_id: id } });
+    }
+    if (models.ProductVariant) {
+      await models.ProductVariant.destroy({ where: { product_id: id } });
+    }
+    if (models.InventoryTransaction) {
+      await models.InventoryTransaction.destroy({ where: { product_id: id } });
+    }
+    if (models.Review) {
+      await models.Review.destroy({ where: { product_id: id } });
+    }
+    if (models.OrderItem) {
+      // Nullify product reference so order history remains intact without foreign key lock
+      await models.OrderItem.update({ product_id: null }, { where: { product_id: id } });
+    }
+
     await product.destroy();
-    return res.json({ success: true, message: 'Product deleted successfully.' });
+    return res.json({ success: true, message: 'Product deleted permanently and successfully.' });
   } catch (error) {
+    console.error('Delete product error:', error);
     return res.status(500).json({ success: false, message: 'Failed to delete product.', error: error.message });
   }
 };

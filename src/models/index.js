@@ -195,6 +195,10 @@ export const defineModels = (sequelize) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+    public_id: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
     display_order: {
       type: DataTypes.INTEGER,
       defaultValue: 0
