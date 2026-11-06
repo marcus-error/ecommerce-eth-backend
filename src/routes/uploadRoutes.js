@@ -6,6 +6,9 @@ import { authenticateToken, requireAdmin } from '../middleware/authMiddleware.js
 export const createUploadRouter = () => {
   const router = express.Router();
 
+  // Public file upload for customer reviews & feedback
+  router.post('/public', upload.single('image'), uploadSingle);
+
   // Admin file uploads - support both root and specific endpoints
   router.post('/', authenticateToken, requireAdmin, upload.single('image'), uploadSingle);
   router.post('/single', authenticateToken, requireAdmin, upload.single('image'), uploadSingle);

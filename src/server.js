@@ -52,6 +52,9 @@ export async function autoMigrateSchema(sequelize) {
           if (!revColNames.has('product_name')) {
             await sequelize.query('ALTER TABLE `reviews` ADD COLUMN `product_name` VARCHAR(150) NULL');
           }
+          if (!revColNames.has('image_url')) {
+            await sequelize.query('ALTER TABLE `reviews` ADD COLUMN `image_url` TEXT NULL');
+          }
           await sequelize.query('ALTER TABLE `reviews` MODIFY COLUMN `product_id` INT NULL');
         } catch (revErr) {
           // reviews table will be created by sync if not present
@@ -70,6 +73,9 @@ export async function autoMigrateSchema(sequelize) {
         }
         if (revCols.length > 0 && !revColNames.has('product_name')) {
           await sequelize.query("ALTER TABLE reviews ADD COLUMN product_name VARCHAR(150);");
+        }
+        if (revCols.length > 0 && !revColNames.has('image_url')) {
+          await sequelize.query("ALTER TABLE reviews ADD COLUMN image_url TEXT;");
         }
       } catch (e) {}
     }

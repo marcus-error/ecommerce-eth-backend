@@ -4,12 +4,8 @@ export const seedDatabase = async (models) => {
   try {
     const userCount = await models.User.count();
     if (userCount > 0) {
-      console.log('ℹ️ [DB] Database already initialized with records.');
-      // Check if we need to ensure all 14 categories exist
-      const catCount = await models.Category.count();
-      if (catCount >= 14) {
-        return;
-      }
+      console.log('ℹ️ [DB] Database already initialized with records. Skipping re-seed so admin deletions & edits persist permanently.');
+      return;
     }
 
     console.log('🌱 [DB] Seeding/Updating database with all 14 Imitation Jewellery categories & products...');

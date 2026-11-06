@@ -19,6 +19,9 @@ export const createOrderRouter = (models) => {
   // Admin order management
   router.get('/admin/all', authenticateToken, requireAdmin, adminGetOrders(models));
   router.patch('/admin/:id/status', authenticateToken, requireAdmin, adminUpdateOrderStatus(models));
+  router.put('/admin/:id/status', authenticateToken, requireAdmin, adminUpdateOrderStatus(models));
+  router.patch('/admin/:id', authenticateToken, requireAdmin, adminUpdateOrderStatus(models));
+  router.put('/admin/:id', authenticateToken, requireAdmin, adminUpdateOrderStatus(models));
 
   return router;
 };

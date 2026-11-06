@@ -6,6 +6,7 @@ export const createReviewController = (models) => {
       rating: 5,
       product_name: 'Temple Lakshmi Necklace',
       product_id: 1,
+      image_url: '/uploads/jewels.png',
       comment: 'The antique 24K matte finish on this necklace is absolutely regal. Wore it for my daughter’s engagement and received endless praise. Truly ancestral jewellery craftsmanship.',
       is_approved: true
     },
@@ -15,6 +16,7 @@ export const createReviewController = (models) => {
       rating: 5,
       product_name: 'Pearl Jhumka Earrings',
       product_id: 2,
+      image_url: '/uploads/earring.png',
       comment: 'Exceptional weight and genuine freshwater pearls. It looks virtually indistinguishable from heirloom 22k gold. Safe, insured shipping was flawless.',
       is_approved: true
     },
@@ -24,6 +26,7 @@ export const createReviewController = (models) => {
       rating: 5,
       product_name: 'Antique Gold Kada Bangles',
       product_id: 3,
+      image_url: '/uploads/bangles.png',
       comment: 'The intricate kemp stone setting and delicate peacock carving are breathtaking. Outstanding customer support and luxurious satin packaging.',
       is_approved: true
     },
@@ -33,6 +36,7 @@ export const createReviewController = (models) => {
       rating: 5,
       product_name: 'Gemstone Cocktail Ring',
       product_id: 4,
+      image_url: '/uploads/rings.png',
       comment: 'A showstopper piece! The ruby centerpiece catches candlelight majestically. Will definitely order the coordinated bridal set next.',
       is_approved: true
     },
@@ -42,6 +46,7 @@ export const createReviewController = (models) => {
       rating: 5,
       product_name: 'Temple Waist Belt (Vaddanam)',
       product_id: 5,
+      image_url: '/uploads/waist belt.png',
       comment: 'Wore this royal ottiyanam for my wedding muhurtham. The fit was easily adjustable and the antique gold patina looked divine in our bridal photographs.',
       is_approved: true
     }
@@ -83,7 +88,8 @@ export const createReviewController = (models) => {
         comment,
         location = 'Verified Patron',
         product_name = 'Heirloom Jewellery Piece',
-        product_id = null
+        product_id = null,
+        image_url = null
       } = req.body;
 
       if (!customer_name || !customer_name.trim()) {
@@ -113,6 +119,7 @@ export const createReviewController = (models) => {
         location: (location || 'Verified Patron').trim(),
         product_name: (product_name || 'Heirloom Jewellery Piece').trim(),
         product_id: assignedProductId,
+        image_url: image_url || null,
         user_id: req.user ? req.user.id : null,
         is_approved: true
       });

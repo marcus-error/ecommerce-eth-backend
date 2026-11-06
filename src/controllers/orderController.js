@@ -184,8 +184,10 @@ export const getMyOrders = (models) => async (req, res) => {
 export const getOrderById = (models) => async (req, res) => {
   try {
     const { id } = req.params;
-    const isNumeric = !isNaN(id);
-    const where = isNumeric ? { id: parseInt(id, 10) } : { order_number: id };
+    const isNumeric = !isNaN(id) && Number.isInteger(Number(id));
+    const where = isNumeric
+      ? { [Op.or]: [{ id: parseInt(id, 10) }, { order_number: String(id) }] }
+      : { order_number: String(id) };
 
     const order = await models.Order.findOne({
       where,

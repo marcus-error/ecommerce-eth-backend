@@ -13,6 +13,7 @@ import { createPaymentRouter } from './routes/paymentRoutes.js';
 import { createAdminRouter } from './routes/adminRoutes.js';
 import { createUploadRouter } from './routes/uploadRoutes.js';
 import { createReviewRouter } from './routes/reviewRoutes.js';
+import { getStoreSettings } from './controllers/adminController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,9 @@ export const createApp = (models) => {
       timestamp: new Date().toISOString()
     });
   });
+
+  // Public store settings (contact email, phone, working hours, brand narrative)
+  app.get('/api/settings', getStoreSettings(models));
 
   // Mount API Routers
   app.use('/api/admin/uploads', createUploadRouter());

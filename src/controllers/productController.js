@@ -205,14 +205,14 @@ export const createProduct = (models) => async (req, res) => {
 
     // Ensure unique slug
     let slug = generateSlug(name.trim());
-    let slugExists = await models.Product.findOne({ where: { slug } });
+    let slugExists = await models.Product.findOne({ where: { slug }, attributes: ['id'] });
     if (slugExists) {
       slug = `${slug}-${Math.floor(1000 + Math.random() * 9000)}`;
     }
 
     // Ensure unique SKU
     let finalSku = (sku && sku.trim()) || `TEE-${Date.now().toString().slice(-6)}`;
-    let skuExists = await models.Product.findOne({ where: { sku: finalSku } });
+    let skuExists = await models.Product.findOne({ where: { sku: finalSku }, attributes: ['id'] });
     if (skuExists) {
       finalSku = `${finalSku}-${Math.floor(100 + Math.random() * 900)}`;
     }
@@ -230,8 +230,9 @@ export const createProduct = (models) => async (req, res) => {
       }
     }
     if (!validCategoryId) {
-      const firstCat = await models.Category.findOne();
+      const firstCat = await models.Category.findOne({ attributes: ['id'] });
       if (firstCat) validCategoryId = firstCat.id;
+      else validCategoryId = 1;
     }
 
     const parsedOriginal = (original_price !== undefined && original_price !== '' && !isNaN(parseFloat(original_price)))

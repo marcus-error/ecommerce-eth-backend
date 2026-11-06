@@ -532,6 +532,10 @@ export const defineModels = (sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true
     },
+    image_url: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
     is_approved: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
