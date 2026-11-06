@@ -57,7 +57,7 @@ export const createReviewController = (models) => {
       const limit = parseInt(req.query.limit || 20, 10);
       let reviews = await models.Review.findAll({
         where: { is_approved: true },
-        order: [['createdAt', 'DESC']],
+        order: [['id', 'DESC'], ['createdAt', 'DESC']],
         limit
       });
 

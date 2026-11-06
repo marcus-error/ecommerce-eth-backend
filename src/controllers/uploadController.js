@@ -42,8 +42,9 @@ export const uploadSingle = async (req, res) => {
 
   return res.json({
     success: true,
-    message: 'File uploaded successfully.',
+    message: finalUrl.startsWith('http') ? 'File uploaded to Cloudinary successfully.' : 'File uploaded to local storage successfully.',
     url: finalUrl,
+    storage: finalUrl.startsWith('http') ? 'cloudinary' : 'local',
     filename: req.file.filename,
     original_name: req.file.originalname,
     size: req.file.size
@@ -87,6 +88,7 @@ export const uploadMultiple = async (req, res) => {
 
       return {
         url: fileUrl,
+        storage: fileUrl.startsWith('http') ? 'cloudinary' : 'local',
         filename: file.filename,
         original_name: file.originalname,
         size: file.size

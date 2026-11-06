@@ -66,6 +66,26 @@ export async function autoMigrateSchema(sequelize) {
       }
     } else if (dialect === 'sqlite') {
       try {
+        const [prodCols] = await sequelize.query("PRAGMA table_info(products);");
+        const prodColNames = new Set(prodCols.map((c) => c.name));
+        const sqliteProductCols = [
+          { name: 'material', sql: 'VARCHAR(120) DEFAULT "24K Antique Matte Gold Plating"' },
+          { name: 'colour', sql: 'VARCHAR(80) DEFAULT "Antique Gold & Ruby"' },
+          { name: 'occasion', sql: 'VARCHAR(100) DEFAULT "Bridal & Festive"' },
+          { name: 'collection_type', sql: 'VARCHAR(100) DEFAULT "Temple Heritage"' },
+          { name: 'weight', sql: 'VARCHAR(50) DEFAULT "85 grams"' },
+          { name: 'dimensions', sql: 'VARCHAR(100) DEFAULT "Standard Adjustable"' },
+          { name: 'rating', sql: 'DECIMAL(3, 1) DEFAULT 4.8' },
+          { name: 'reviews_count', sql: 'INT DEFAULT 50' },
+          { name: 'is_featured', sql: 'BOOLEAN DEFAULT 0' },
+          { name: 'is_published', sql: 'BOOLEAN DEFAULT 1' }
+        ];
+        for (const col of sqliteProductCols) {
+          if (prodCols.length > 0 && !prodColNames.has(col.name)) {
+            await sequelize.query(`ALTER TABLE products ADD COLUMN ${col.name} ${col.sql};`);
+          }
+        }
+
         const [revCols] = await sequelize.query("PRAGMA table_info(reviews);");
         const revColNames = new Set(revCols.map((c) => c.name));
         if (revCols.length > 0 && !revColNames.has('location')) {
